@@ -1,0 +1,27 @@
+name: Deploy to k3s
+
+on:
+  push:
+    branches: [ main ] # Trigger on pushes to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up kubectl
+      uses: kubernetes-actions/setup-kubectl@v3
+      with:
+        kubernetes-version: 'v1.27.0' # Or your k3s version
+
+    - name: Configure kubeconfig
+      run: |
+        mkdir -p ~/.kube
+        echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > ~/.kube/config
+        chmod 600 ~/.kube/config
+
+    - name: Apply Kubernetes manifest
+      run: kubectl apply -f nginx-app.yml
